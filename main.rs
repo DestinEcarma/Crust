@@ -1,12 +1,24 @@
 #![no_std]
 #![no_main]
 
+use core::ffi::*;
 use core::panic::PanicInfo;
 use core::mem::zeroed;
+use libc::*;
 
 #[panic_handler]
-unsafe fn panic(_info: &PanicInfo) -> ! {
-    loop {}
+unsafe fn panic(info: &PanicInfo) -> ! {
+    // TODO: What's the best way to implement the panic handler within the Crust spirit
+    //   PanicInfo must be passed by reference.
+    if let Some(location) = info.location() {
+        fprintf!(stderr, c"%.*s:%d: ", location.file().len(), location.file().as_ptr(), location.line());
+    }
+    fprintf!(stderr, c"panicked");
+    if let Some(message) = info.message().as_str() {
+        fprintf!(stderr, c": %.*s", message.len(), message.as_ptr());
+    }
+    fprintf!(stderr, c"\n");
+    abort();
 }
 
 pub mod raymath {
@@ -58,18 +70,42 @@ pub mod raylib {
 
 #[macro_use]
 pub mod libc {
-    use core::ffi::{c_void};
+    use core::ffi::*;
+
+    pub type FILE = c_void;
+
+    extern "C" {
+        pub static stdin: *mut FILE;
+        pub static stdout: *mut FILE;
+        pub static stderr: *mut FILE;
+    }
+
+    #[macro_export]
+    macro_rules! fprintf {
+        ($stream:expr, $fmt:literal $($args:tt)*) => {{
+            use core::ffi::c_int;
+            extern "C" {
+                #[link_name = "fprintf"]
+                pub fn fprintf_raw(stream: *mut libc::FILE, fmt: *const c_char, ...) -> c_int;
+            }
+            fprintf_raw($stream, $fmt.as_ptr() $($args)*)
+        }};
+    }
 
     #[macro_export]
     macro_rules! printf {
-        ($fmt:literal $($args:tt)*) => {
+        ($fmt:literal $($args:tt)*) => {{
             use core::ffi::c_int;
             extern "C" {
                 #[link_name = "printf"]
                 pub fn printf_raw(fmt: *const u8, ...) -> c_int;
             }
             printf_raw($fmt.as_ptr() $($args)*)
-        };
+        }};
+    }
+
+    extern "C" {
+        pub fn abort() -> !;
     }
 
     pub unsafe fn realloc_items<T>(ptr: *mut T, count: usize) -> *mut T {
