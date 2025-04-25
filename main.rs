@@ -125,7 +125,7 @@ pub mod libc {
     }
 }
 
-pub mod ds { // Data Structures
+pub mod da { // Dynamic Arrays in Crust
     use crate::libc;
     use core::ptr;
 
@@ -137,24 +137,24 @@ pub mod ds { // Data Structures
         pub capacity: usize,
     }
 
-    pub unsafe fn array_push<T>(xs: *mut Array<T>, item: T) {
-        if (*xs).count >= (*xs).capacity {
-            if (*xs).capacity == 0 {
-                (*xs).capacity = 256;
+    pub unsafe fn da_append<T>(da: *mut Array<T>, item: T) {
+        if (*da).count >= (*da).capacity {
+            if (*da).capacity == 0 {
+                (*da).capacity = 256;
             } else {
-                (*xs).capacity *= 2;
+                (*da).capacity *= 2;
             }
-            (*xs).items = libc::realloc_items((*xs).items, (*xs).capacity);
+            (*da).items = libc::realloc_items((*da).items, (*da).capacity);
         }
-        *((*xs).items.add((*xs).count)) = item;
-        (*xs).count += 1;
+        *((*da).items.add((*da).count)) = item;
+        (*da).count += 1;
     }
 
-    pub unsafe fn array_destroy<T>(xs: *mut Array<T>) {
-        libc::free((*xs).items);
-        (*xs).items = ptr::null_mut();
-        (*xs).count = 0;
-        (*xs).capacity = 0;
+    pub unsafe fn da_destroy<T>(da: *mut Array<T>) {
+        libc::free((*da).items);
+        (*da).items = ptr::null_mut();
+        (*da).count = 0;
+        (*da).capacity = 0;
     }
 }
 
@@ -170,23 +170,23 @@ pub unsafe extern "C" fn main(_argc: i32, _argv: *mut *mut u8) -> i32 {
     use core::ffi::c_float;
     use raylib::*;
     use raymath::*;
-    use ds::*;
+    use da::*;
 
     const BACKGROUND: Color = Color {r: 0x18, g: 0x18, b: 0x18, a: 255};
     const RECT_SIZE: Vector2 = Vector2 { x: 100.0, y: 100.0 };
 
     let mut rects: Array<Rect> = zeroed();
-    array_push(&mut rects, Rect {
+    da_append(&mut rects, Rect {
         position: Vector2 { x: 0.0, y: 0.0 },
         velocity: Vector2 { x: 100.0, y: 100.0 },
         color: Color {r: 0xFF, g: 0x18, b: 0x18, a: 255},
     });
-    array_push(&mut rects, Rect {
+    da_append(&mut rects, Rect {
         position: Vector2 { x: 300.0, y: 20.0 },
         velocity: Vector2 { x: 100.0, y: 100.0 },
         color: Color {r: 0x18, g: 0xFF, b: 0x18, a: 255},
     });
-    array_push(&mut rects, Rect {
+    da_append(&mut rects, Rect {
         position: Vector2 { x: 20.0, y: 300.0 },
         velocity: Vector2 { x: 100.0, y: 100.0 },
         color: Color {r: 0x18, g: 0x18, b: 0xFF, a: 255},
@@ -222,6 +222,6 @@ pub unsafe extern "C" fn main(_argc: i32, _argv: *mut *mut u8) -> i32 {
         end_drawing();
     }
     close_window();
-    array_destroy(&mut rects);
+    da_destroy(&mut rects);
     0
 }
