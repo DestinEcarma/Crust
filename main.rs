@@ -130,7 +130,7 @@ struct Rect {
 }
 
 #[no_mangle]
-unsafe extern "C" fn main(_argc: i32, _argv: *mut *mut u8) -> i32 {
+pub unsafe extern "C" fn main(_argc: i32, _argv: *mut *mut u8) -> i32 {
     use core::ffi::c_float;
     use raylib::*;
     use raymath::*;
