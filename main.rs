@@ -9,7 +9,7 @@ unsafe fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 
-mod raymath {
+pub mod raymath {
     use core::ffi::{c_float};
     #[repr(C)]
     #[derive(Clone, Copy)]
@@ -19,7 +19,7 @@ mod raymath {
     }
 }
 
-mod raylib {
+pub mod raylib {
     use core::ffi::{c_int, c_float, c_char};
     use crate::raymath::*;
 
@@ -57,7 +57,7 @@ mod raylib {
 }
 
 #[macro_use]
-mod libc {
+pub mod libc {
     use core::ffi::{c_void};
 
     #[macro_export]
@@ -89,7 +89,7 @@ mod libc {
     }
 }
 
-mod ds { // Data Structures
+pub mod ds { // Data Structures
     use crate::libc;
     use core::ptr;
 
@@ -123,10 +123,10 @@ mod ds { // Data Structures
 }
 
 #[derive(Copy, Clone)]
-struct Rect {
-    position: raymath::Vector2,
-    velocity: raymath::Vector2,
-    color: raylib::Color,
+pub struct Rect {
+    pub position: raymath::Vector2,
+    pub velocity: raymath::Vector2,
+    pub color: raylib::Color,
 }
 
 #[no_mangle]
