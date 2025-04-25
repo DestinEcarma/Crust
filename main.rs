@@ -72,7 +72,7 @@ pub mod libc {
         };
     }
 
-    pub unsafe fn realloc<T>(ptr: *mut T, count: usize) -> *mut T {
+    pub unsafe fn realloc_items<T>(ptr: *mut T, count: usize) -> *mut T {
         extern "C" {
             #[link_name = "realloc"]
             fn realloc_raw(ptr: *mut c_void, size: usize) -> *mut c_void;
@@ -108,7 +108,7 @@ pub mod ds { // Data Structures
             } else {
                 (*xs).capacity *= 2;
             }
-            (*xs).items = libc::realloc((*xs).items, (*xs).capacity);
+            (*xs).items = libc::realloc_items((*xs).items, (*xs).capacity);
         }
         *((*xs).items.add((*xs).count)) = item;
         (*xs).count += 1;
