@@ -137,24 +137,26 @@ pub mod da { // Dynamic Arrays in Crust
         pub capacity: usize,
     }
 
-    pub unsafe fn da_append<T>(da: *mut Array<T>, item: T) {
-        if (*da).count >= (*da).capacity {
-            if (*da).capacity == 0 {
-                (*da).capacity = 256;
-            } else {
-                (*da).capacity *= 2;
+    impl<T> Array<T> {
+        pub unsafe fn append(da: *mut Array<T>, item: T) {
+            if (*da).count >= (*da).capacity {
+                if (*da).capacity == 0 {
+                    (*da).capacity = 256;
+                } else {
+                    (*da).capacity *= 2;
+                }
+                (*da).items = libc::realloc_items((*da).items, (*da).capacity);
             }
-            (*da).items = libc::realloc_items((*da).items, (*da).capacity);
+            *((*da).items.add((*da).count)) = item;
+            (*da).count += 1;
         }
-        *((*da).items.add((*da).count)) = item;
-        (*da).count += 1;
-    }
 
-    pub unsafe fn da_destroy<T>(da: *mut Array<T>) {
-        libc::free((*da).items);
-        (*da).items = ptr::null_mut();
-        (*da).count = 0;
-        (*da).capacity = 0;
+        pub unsafe fn destroy(da: *mut Array<T>) {
+            libc::free((*da).items);
+            (*da).items = ptr::null_mut();
+            (*da).count = 0;
+            (*da).capacity = 0;
+        }
     }
 }
 
@@ -176,17 +178,17 @@ pub unsafe extern "C" fn main(_argc: i32, _argv: *mut *mut u8) -> i32 {
     const RECT_SIZE: Vector2 = Vector2 { x: 100.0, y: 100.0 };
 
     let mut rects: Array<Rect> = zeroed();
-    da_append(&mut rects, Rect {
+    Array::append(&mut rects, Rect {
         position: Vector2 { x: 0.0, y: 0.0 },
         velocity: Vector2 { x: 100.0, y: 100.0 },
         color: Color {r: 0xFF, g: 0x18, b: 0x18, a: 255},
     });
-    da_append(&mut rects, Rect {
+    Array::append(&mut rects, Rect {
         position: Vector2 { x: 300.0, y: 20.0 },
         velocity: Vector2 { x: 100.0, y: 100.0 },
         color: Color {r: 0x18, g: 0xFF, b: 0x18, a: 255},
     });
-    da_append(&mut rects, Rect {
+    Array::append(&mut rects, Rect {
         position: Vector2 { x: 20.0, y: 300.0 },
         velocity: Vector2 { x: 100.0, y: 100.0 },
         color: Color {r: 0x18, g: 0x18, b: 0xFF, a: 255},
@@ -213,7 +215,7 @@ pub unsafe extern "C" fn main(_argc: i32, _argv: *mut *mut u8) -> i32 {
             }
         }
 
-        begin_drawing();
+    begin_drawing();
         clear_background(BACKGROUND);
         for i in 0..rects.count {
             let rect = *rects.items.add(i);
@@ -222,6 +224,6 @@ pub unsafe extern "C" fn main(_argc: i32, _argv: *mut *mut u8) -> i32 {
         end_drawing();
     }
     close_window();
-    da_destroy(&mut rects);
+    Array::destroy(&mut rects);
     0
 }
