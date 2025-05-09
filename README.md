@@ -13,3 +13,5 @@
 1. Everything is pub by default.
 
 *The list of rules may change. The goal is to make programming in Rust fun.*
+
+Currently used in the [B Compiler Project](https://github.com/tsoding/b).
